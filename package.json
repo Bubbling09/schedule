@@ -1,0 +1,10 @@
+﻿{
+  "name": "summer-schedule-sync",
+  "version": "1.0.0",
+  "description": "暑假日程规划同步服务器",
+  "main": "sync-server.js",
+  "scripts": {
+    "start": "node sync-server.js"
+  },
+  "dependencies": {}
+}

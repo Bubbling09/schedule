@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>2026暑假 · 每日打卡</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fef6f8;--card:#fff;--border:#f0dde2;--text:#5a4a4d;--text2:#9c8088;--accent:#f4a0b0;--hTx:#5a3a40;--hTx2:#8a6068;--tBg:#fef0f2;--tBd:#f8d0d8;--hP1:#f4c8d0;--hP2:#f4a0b0;--shadow:0 1px 4px rgba(0,0,0,.04);--radius:12px;--radius-s:8px}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+.container{max-width:1300px;margin:0 auto;padding:14px}
+.header{background:linear-gradient(135deg,#f0c0cc,#f8d4de);color:var(--hTx,#5a3a40);border-radius:var(--radius);padding:18px 22px;margin-bottom:14px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.header h1{font-size:20px;font-weight:700}.header .sub{font-size:12px;color:var(--hTx2,#8a6068)}
+.header-clock{font-size:22px;font-weight:300}.header-date{font-size:11px;text-align:right}
+.header-progress{background:rgba(255,255,255,.4);border-radius:8px;height:6px;margin-top:8px;overflow:hidden}
+.header-progress-fill{height:100%;border-radius:8px;background:var(--hP1,#f4c8d0);transition:width .8s;position:relative;overflow:hidden}.header-progress-fill::after{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);background-size:200% 100%;animation:shimmer 2s infinite}
+.header-progress-label{font-size:11px;color:#8a6068;margin-top:2px;display:flex;justify-content:space-between}
+.action-bar{display:flex;gap:6px;margin-bottom:14px}.action-bar button{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-s);padding:5px 14px;cursor:pointer;font-size:12px;color:var(--text)}.action-bar button:hover{border-color:var(--accent)}
+#fileInput{display:none}
+.progress-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-bottom:14px}
+.prog-card{background:var(--card);border-radius:var(--radius-s);box-shadow:var(--shadow);padding:12px 16px;border-left:4px solid;transition:all .3s}
+.prog-card:hover{transform:translateX(4px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.prog-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.prog-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer}
+.prog-name-edit{font-size:13px;font-weight:600;background:transparent;border:none;border-bottom:1px dashed var(--accent);outline:none;min-width:60px;color:var(--text)}
+.prog-count{font-size:11px;color:var(--text2)}.prog-bar{height:6px;background:#f5e8ec;border-radius:6px;overflow:hidden}
+.prog-fill{height:100%;border-radius:6px;transition:width .5s}
+.cal-wrap{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+.week-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 8px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px}
+.week-nav h2{font-size:15px;font-weight:600}
+.week-nav button{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-s);padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text)}
+.cal-scroll{overflow-x:auto;padding:6px 4px}
+.cal-table{width:100%;min-width:700px;border-collapse:collapse;table-layout:fixed}
+.cal-table th,.cal-table td{border:1px solid var(--border);text-align:center;padding:5px 3px;font-size:12px;vertical-align:top}
+.cal-table th{background:#fdf8fa;font-weight:600;padding:7px 3px;white-space:nowrap;color:var(--text2);min-width:36px}
+.cal-table .today{background:var(--tBg,#fef0f2);border-color:var(--tBd,#f8d0d8)}
+.cal-table .date-num{font-size:13px;font-weight:700}.cal-table .date-dow{font-size:10px;color:var(--text2)}
+.cal-table .task-item{display:flex;align-items:center;gap:3px;padding:2px 0;font-size:11px;text-align:left}
+.cal-table .task-item input[type=checkbox]{flex-shrink:0;width:13px;height:13px;cursor:pointer;accent-color:var(--accent)}
+.cal-table .task-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;cursor:pointer;transition:transform .2s}
+.cal-table .task-item .tname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;cursor:pointer}
+.cal-table .task-item.done .tname{text-decoration:line-through;color:#c0a8ac}
+.cal-table .day-progress{font-size:10px;color:var(--text2);margin-top:1px}
+.cal-table .day-progress .bar{display:inline-block;height:3px;border-radius:2px;background:#f5e8ec;vertical-align:middle;width:40px;margin-right:3px}
+.cal-table .day-progress .fill{height:100%;border-radius:2px;background:var(--accent);transition:width .3s}
+.group-label{cursor:pointer}.group-label:hover{opacity:.7}
+.month-wrap{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 20px;margin-bottom:14px}
+.month-title{font-size:15px;font-weight:600;margin-bottom:12px}
+.month-grids{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:860px){.month-grids{grid-template-columns:1fr}}
+.month-card{border:1px solid var(--border);border-radius:var(--radius-s);overflow:hidden}
+.month-card h3{font-size:14px;font-weight:600;padding:8px 12px;background:#fdf8fa;border-bottom:1px solid var(--border);text-align:center}
+.month-table{width:100%;border-collapse:collapse}
+.month-table th{font-size:10px;font-weight:600;color:var(--text2);padding:4px 0;width:14.28%}
+.month-table td{font-size:11px;text-align:center;padding:2px 0;vertical-align:top;height:72px;border:1px solid var(--border);position:relative;overflow:hidden}
+.month-table td .day-num{font-weight:500;position:absolute;top:2px;left:4px;font-size:11px}
+.month-table td .event-bar{position:absolute;left:2px;right:2px;height:11px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:6px;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.month-table .today-cell{background:var(--tBg,#fef0f2);border-color:var(--tBd,#f8d0d8)!important}
+@media(max-width:768px){.container{padding:10px}.header{padding:14px;flex-direction:column;align-items:flex-start}.cal-table{min-width:560px}.progress-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.progress-grid{grid-template-columns:1fr}.cal-table{min-width:400px}.month-table td{height:56px}}
+.color-dot{cursor:pointer;transition:transform .2s}.color-dot:hover{transform:scale(1.3)}
+
+/* S&D */#settingsBtn{position:fixed;bottom:20px;right:20px;width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:900;transition:transform .3s}#settingsBtn:hover{transform:scale(1.15)rotate(30deg)}#settingsPanel{position:fixed;bottom:66px;right:20px;width:220px;background:var(--card);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);z-index:901;padding:14px;display:none}#settingsPanel h4{font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text)}.theme-sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;display:inline-block;transition:all .2s}.theme-sw:hover{transform:scale(1.2)}.theme-sw.active{border-color:var(--text)}.font-btn2{font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);cursor:pointer;display:inline-block;margin:2px;background:var(--card);color:var(--text)}.font-btn2.active{background:var(--accent);color:#fff;border-color:var(--accent)}#addDecoBtn{position:fixed;bottom:66px;right:66px;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f4a0b0,#f8c0cc);color:#fff;border:none;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;z-index:900;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform .3s}#addDecoBtn:hover{transform:scale(1.15)rotate(15deg)}.deco-card{position:fixed;z-index:800;cursor:grab;user-select:none;width:44px;height:44px;background:var(--card);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:22px;transition:box-shadow .3s}.deco-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.12)}.deco-card .delD{position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:#e88a8a;color:#fff;border:none;cursor:pointer;font-size:7px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}.deco-card:hover .delD{opacity:1}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.sync-status{font-size:9px;display:flex;align-items:center;gap:4px;margin-top:4px;justify-content:flex-end}
+.sync-status .dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+</style></head><body><div class="container" id="app">
+<div class="header"><div style="flex:1"><h1>2026 暑假打卡</h1>
+<div class="sub">7月4日 - 8月25日</div>
+<div class="header-progress"><div class="header-progress-fill" id="headerProgress" style="width:0%"></div></div>
+<div class="header-progress-label"><span id="headerDays"></span><span id="headerPct"></span></div></div>
+<div style="text-align:right"><div class="header-clock" id="liveClock">--:--:--</div><div class="header-date" id="liveDate">--</div><div class="sync-status" id="syncStatus"><span class="dot" style="background:#aaa"></span> 未配置</div></div></div>
+<div class="action-bar"><button onclick="exportBackup()">导出备份</button><button onclick="document.getElementById('fileInput').click()">导入备份</button><input type="file" id="fileInput" accept=".json" onchange="importBackup(this)"></div>
+<div class="progress-grid" id="progressGrid"></div>
+<div class="cal-wrap"><div class="week-nav">
+<div><h2 id="weekTitle">第1周</h2><div style="font-size:12px;color:var(--text2)" id="weekInfo"></div></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<button onclick="navWeek(-1)">&#8249; 上周</button>
+<button onclick="navWeek(1)">下周 &#8250;</button>
+<button onclick="openModal()" style="background:var(--accent);color:#fff;border-color:var(--accent)">+ 添加任务</button>
+</div></div>
+<div class="cal-scroll"><table class="cal-table"><tbody id="calBody"></tbody></table></div></div>
+<div class="month-wrap"><div class="month-title">月历总览</div><div class="month-grids" id="monthGrids"></div></div></div>
+<div class="modal-overlay" id="modalOverlay" style="display:none"><div class="modal-box"><h3>添加自定义任务</h3>
+<form onsubmit="return false">
+<label>任务名称</label><input type="text" id="fName" required placeholder="如 整理文献">
+<div style="display:flex;gap:10px"><div style="flex:1"><label>开始</label><input type="date" id="fStart"></div><div style="flex:1"><label>结束</label><input type="date" id="fEnd"></div></div>
+<label>时间（选填）</label><input type="text" id="fTime" placeholder="如 14:00-16:00">
+<label>分组</label><select id="fGroup"><option>研究生论文初稿</option><option>港博申请</option><option>专项活动</option><option>运动健身</option><option>自定义</option></select>
+<div style="display:flex;gap:10px"><div style="flex:1"><label>颜色</label><input type="color" id="fColor" value="#f4a0b0"></div></div>
+<div style="display:flex;gap:10px;margin-top:16px"><button type="button" onclick="saveCustomTask()" style="flex:1;padding:8px;border-radius:6px;border:none;cursor:pointer;background:var(--accent);color:#fff;font-size:13px">添加</button><button type="button" onclick="closeModal()" style="flex:1;padding:8px;border-radius:6px;border:none;cursor:pointer;background:#f5e8ec;color:var(--text);font-size:13px">取消</button></div>
+</form></div></div>
+
+<script>
+const D=s=>new Date(s+"T00:00:00");
+const fmt=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const db=(a,b)=>Math.round((b-a)/864e5);
+const dn=["","一","二","三","四","五","六"];
+const cn=d=>d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+const SS="2026-07-04",TS="2026-07-14",SE="2026-08-25";
+var GR=[{id:"thesis",name:"完成研究生论文初稿",color:"#7fc1d6",tasks:["thesis_outline","thesis_review","thesis_write","thesis_final"]},{id:"hk_phd",name:"梳理港博申请相关事宜",color:"#c8a8d8",tasks:["hk_advisor","hk_ielts_plan","hk_agent","hk_english"]},{id:"exercise",name:"运动健身",color:"#90d4a0",tasks:["exercise"]}];
+var G2ID={"研究生论文初稿":"thesis","港博申请":"hk_phd","运动健身":"exercise"};
+var GORD=["研究生论文初稿","港博申请","专项活动","运动健身","自定义"];
+var TCOL={};
+var GCOL={"研究生论文初稿":"#7fc1d6","港博申请":"#c8a8d8","专项活动":"#f8d080","运动健身":"#90d4a0","自定义":"#f4a0b0"};
+function BDT(){var s=D(TS),e=D(SE),ds=[];for(var d=new Date(s);d<=e;d.setDate(d.getDate()+1)){var dd=fmt(d),tl=[];
+if(dd>="2026-07-14"&&dd<="2026-07-18")tl.push({id:"thesis_outline",name:"修改开题大纲",parent:"thesis",grp:"研究生论文初稿"});
+if(dd>="2026-07-19"&&dd<="2026-07-23")tl.push({id:"thesis_review",name:"导师审核修改大纲",parent:"thesis",grp:"研究生论文初稿"});
+if(dd>="2026-07-24"&&dd<="2026-08-06")tl.push({id:"thesis_write",name:"填写论文内容",parent:"thesis",grp:"研究生论文初稿"});
+if(dd>="2026-08-16"&&dd<="2026-08-25")tl.push({id:"thesis_final",name:"论文写作收尾",parent:"thesis",grp:"研究生论文初稿"});
+if(dd>="2026-07-14"&&dd<="2026-07-18")tl.push({id:"hk_advisor",name:"确定港博导师和专业方向",parent:"hk_phd",grp:"港博申请"});
+if(dd==="2026-07-19")tl.push({id:"hk_ielts_plan",name:"制定雅思学习计划",parent:"hk_phd",grp:"港博申请"});
+if(dd>="2026-07-20"&&dd<="2026-07-22")tl.push({id:"hk_agent",name:"和中介沟通",parent:"hk_phd",grp:"港博申请"});
+if(dd>="2026-07-23"&&dd<="2026-08-05")tl.push({id:"hk_english",name:"背雅思单词/练习口语",parent:"hk_phd",grp:"港博申请"});
+if(dd>="2026-07-27"&&dd<="2026-08-02")tl.push({id:"training",name:"新乡培训",parent:"",grp:"专项活动"});
+if(dd==="2026-08-04")tl.push({id:"duty",name:"在校值班",parent:"",grp:"专项活动"});
+if(dd>="2026-08-05"&&dd<="2026-08-14")tl.push({id:"travel",name:"旅游出行",parent:"",grp:"专项活动"});
+if(dd==="2026-08-15")tl.push({id:"birthday",name:"爷爷生日",parent:"",grp:"专项活动"});
+tl.push({id:"exercise",name:"运动健身",parent:"exercise",grp:"运动健身"});
+ds.push({ds:dd,tasks:tl})}return ds}
+var AD=BDT();
+function LC(){try{return JSON.parse(localStorage.getItem("sc"))||[]}catch(e){return[]}}function SC(t){try{localStorage.setItem("sc",JSON.stringify(t))}catch(e){}}
+function GC(){return"c_"+Date.now()+"_"+Math.random().toString(36).slice(2,6)}
+(function(){LC().forEach(function(c){c.id=c.id||GC();for(var d=new Date(c.start);d<=new Date(c.end);d.setDate(d.getDate()+1)){var ds=fmt(d),day=AD.find(function(x){return x.ds===ds});if(day&&!day.tasks.some(function(t){return t.id===c.id}))day.tasks.push({id:c.id,name:c.name||"",parent:"",grp:c.group||"自定义",cat:"custom"})}})})();
+var CO=0,CK="s_c",NK="s_n",CLK="s_cl";
+function LK(k){try{return JSON.parse(localStorage.getItem(k))||{}}catch(e){return{}}}function SK(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+// === sync layer ===
+var _origSK=SK;
+var SYNC={url:'',timer:null};
+function getSyncUrl(){try{return localStorage.getItem('syncUrl')||''}catch(e){return''}}
+function setSyncUrl(u){try{localStorage.setItem('syncUrl',u)}catch(e){}}
+SK=function(k,v){_origSK(k,v);syncSend()};
+function updateSyncUI(ok){
+  var el=document.getElementById('syncStatus');
+  if(el)el.innerHTML=ok?'<span class="dot" style="background:#6c6"></span> 已同步':'<span class="dot" style="background:#c66"></span> 未连接';
+  var es=document.getElementById('syncStatusSmall');
+  if(es)es.textContent=ok?'已同步':'未连接';
+}
+function syncSend(){var u=getSyncUrl();if(!u)return;var d={checks:LK(CK),names:LK(NK),colors:LK(CLK),customTasks:LC()};fetch(u+'/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(function(){updateSyncUI(true)}).catch(function(){updateSyncUI(false)})}
+function syncFetch(){var u=getSyncUrl();if(!u)return;fetch(u+'/api/data').then(function(r){return r.json()}).then(function(d){if(d.checks&&d.names&&d.colors){_origSK(CK,d.checks);_origSK(NK,d.names);_origSK(CLK,d.colors);if(d.customTasks)SC(d.customTasks);RA()}updateSyncUI(true)}).catch(function(){updateSyncUI(false)})}
+function connectSync(){var inp=document.getElementById('syncUrlInput');var u=inp.value.trim();if(!u)return;if(!u.startsWith('http'))u='http://'+u;setSyncUrl(u);updateSyncUI(false);if(SYNC.timer)clearInterval(SYNC.timer);SYNC.timer=setInterval(syncFetch,5000);setTimeout(syncFetch,500)}
+var editTN=function(id,el,def){var cur=gN(id,def);var inp=document.createElement("input");inp.type="text";inp.value=cur;inp.style.cssText="font-size:10px;background:transparent;border:1px solid var(--accent);border-radius:3px;outline:none;width:"+Math.max(50,cur.length*7)+"px;padding:0 3px;color:var(--text)";inp.onblur=function(){var v=inp.value.trim()||def;sN(id,v)};inp.onkeydown=function(e){if(e.key==="Enter")inp.blur();if(e.key==="Escape"){inp.value=gN(id,def);inp.blur()}};el.innerHTML="";el.appendChild(inp);inp.focus();inp.select()}
+var editGN=function(g,el){var cur=gN(g,g);var inp=document.createElement("input");inp.type="text";inp.value=cur;inp.style.cssText="font-size:12px;font-weight:600;background:transparent;border:1px solid var(--accent);border-radius:3px;outline:none;width:"+Math.max(50,cur.length*7)+"px;padding:0 3px;color:var(--text)";inp.onblur=function(){var v=inp.value.trim()||g;sN(g,v)};inp.onkeydown=function(e){if(e.key==="Enter")inp.blur();if(e.key==="Escape"){inp.value=gN(g,g);inp.blur()}};el.innerHTML="";el.appendChild(inp);inp.focus();inp.select()}
+var RM=function(){var el=document.getElementById("monthGrids"),ms=[{y:2026,m:6,l:"7月"},{y:2026,m:7,l:"8月"}],today=fmt(new Date());el.innerHTML=ms.map(function(m){var fd=new Date(m.y,m.m,1),ld=new Date(m.y,m.m+1,0),dow=fd.getDay(),dim=ld.getDate(),dayNum=1;var h='<div class="month-card"><h3>'+m.l+'</h3><table class="month-table"><tr>';["日","一","二","三","四","五","六"].forEach(function(d){h+="<th>"+d+"</th>"});h+="</tr>";for(var row=0;row<6&&dayNum<=dim;row++){h+="<tr>";for(var col=0;col<7;col++){if(row===0&&col<dow){h+="<td></td>";continue}if(dayNum>dim){h+="<td></td>";continue}var ds=m.y+"-"+String(m.m+1).padStart(2,"0")+"-"+String(dayNum).padStart(2,"0"),isToday=ds===today;h+='<td class="'+(isToday?"today-cell":"")+'"><span class="day-num">'+dayNum+"</span>";var ct=[];AD.forEach(function(ad){if(ad.ds===ds)ad.tasks.forEach(function(t){ct.push(t)})});var pm={},bi=0;ct.forEach(function(t){var pid=t.parent||t.id;if(!pm[pid])pm[pid]={id:pid,ts:[]};pm[pid].ts.push(t)});Object.keys(pm).forEach(function(pid){var p=pm[pid],pg=GR.find(function(g){return g.id===pid});if(pg){var top=14+bi*14;h+='<div class="event-bar" style="top:'+top+'px;height:12px;background:'+gC(pg.id,pg.color)+'">'+(typeof gN(pg.id,pg.name)==="string"?gN(pg.id,pg.name).slice(0,5):pg.name.slice(0,5))+"</div>";bi++}});ct.forEach(function(t){if(t.cat==="event"||(!t.parent&&!GR.some(function(g){return g.id===t.id}))){var top=14+bi*14;h+='<div class="event-bar" style="top:'+top+'px;height:12px;background:'+(GCOL[t.grp]||"#c0a8ac")+'">'+(t.name.length>4?t.name.slice(0,4):t.name)+"</div>";bi++}});h+="</td>";dayNum++;}h+="</tr>"}h+="</table></div>";return h}).join("")}
+var UC=function(){var n=new Date();document.getElementById("liveClock").textContent=String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")+":"+String(n.getSeconds()).padStart(2,"0");document.getElementById("liveDate").textContent=cn(n)+" 星期"+dn[n.getDay()]}
+document.addEventListener("click",function(e){var dot=e.target.closest(".color-dot");if(!dot)return;var id=dot.getAttribute("data-cid");if(!id)return;var bg=dot.style.background,def=bg&&bg!==""?bg:"#f4a0b0";var pk=document.createElement("input");pk.type="color";pk.value=def;pk.style.cssText="position:fixed;top:-999px;left:-999px";document.body.appendChild(pk);pk.addEventListener("input",function(){var c=pk.value;var n=LK(CLK);n[id]=c;var pg=GR.find(function(g){return g.id===id});if(pg)pg.tasks.forEach(function(s){n[s]=c});SK(CLK,n);document.querySelectorAll('[data-cid="'+id+'"]').forEach(function(d){d.style.background=c})});pk.addEventListener("change",function(){setTimeout(function(){RA()},100)});pk.click();setTimeout(function(){pk.remove()},5000)})
+function init(){var w=GW(),t=fmt(new Date());for(var i=0;i<w.length;i++){if(t>=w[i].ds&&t<=w[i].de){CO=i;break}}RA();UC();setInterval(UC,1000);var su=getSyncUrl();if(su){var inp=document.getElementById("syncUrlInput");if(inp)inp.value=su;connectSync()}}
+document.addEventListener("DOMContentLoaded",init)
+
+var THEMES=[{i:'pink',n:'粉',bg:'#fef6f8',ca:'#fff',bd:'#f0dde2',ac:'#f4a0b0',tx:'#5a4a4d',t2:'#9c8088',hTx:'#5a3a40',hTx2:'#8a6068',tBg:'#fef0f2',tBd:'#f8d0d8',hP1:'#f4c8d0',hP2:'#f4a0b0',h1:'#f0c0cc',h2:'#f8d4de',pg:{thesis:'#7fc1d6',hk_phd:'#c8a8d8',exercise:'#90d4a0'},tc:{thesis_outline:'#7fc1d6',thesis_review:'#90cce0',thesis_write:'#a8d8e8','thesis_final':'#7fc1d6',hk_advisor:'#c8a8d8',hk_ielts_plan:'#d4b8e0',hk_agent:'#d4b8e0',hk_english:'#e0c8e8',exercise:'#90d4a0',training:'#f8d080',duty:'#f0e090',travel:'#90d0c8',birthday:'#f0a0a0'},gc:{'研究生论文初稿':'#7fc1d6','港博申请':'#c8a8d8','专项活动':'#f8d080','运动健身':'#90d4a0','自定义':'#f4a0b0'}},{i:'yellow',n:'黄',bg:'#fefcf5',ca:'#fff',bd:'#efe5d0',ac:'#d4b06a',tx:'#5a5045',t2:'#9c8f7e',hTx:'#5a4a3a',hTx2:'#8a7a5e',tBg:'#fef5e8',tBd:'#f0dcc0',hP1:'#e8d0a0',hP2:'#d4b06a',h1:'#f0e4c8',h2:'#f5edd8',pg:{thesis:'#8ac0b0',hk_phd:'#c0a8d0',exercise:'#a8d4a0'},tc:{thesis_outline:'#8ac0b0',thesis_review:'#9accc0',thesis_write:'#aad8d0','thesis_final':'#8ac0b0',hk_advisor:'#c0a8d0',hk_ielts_plan:'#d0b8e0',hk_agent:'#d0b8e0',hk_english:'#e0c8e8',exercise:'#a8d4a0',training:'#e8c870',duty:'#e0d070',travel:'#a0d0c0',birthday:'#e0a8a0'},gc:{'研究生论文初稿':'#8ac0b0','港博申请':'#c0a8d0','专项活动':'#e8c870','运动健身':'#a8d4a0','自定义':'#d4b06a'}},{i:'blue',n:'蓝',bg:'#f0f5fa',ca:'#fff',bd:'#d0dde8',ac:'#6a9fc8',tx:'#3a4a5d',t2:'#7a8a9e',hTx:'#3a4a5d',hTx2:'#6a7a8e',tBg:'#e8f0fa',tBd:'#b8d0e4',hP1:'#a0c8e0',hP2:'#6a9fc8',h1:'#a0bcd8',h2:'#b8d0e4',pg:{thesis:'#70b0d0',hk_phd:'#a898c8',exercise:'#80c8a0'},tc:{thesis_outline:'#70b0d0',thesis_review:'#80c0dc',thesis_write:'#90d0e8','thesis_final':'#70b0d0',hk_advisor:'#a898c8',hk_ielts_plan:'#b8a8d8',hk_agent:'#b8a8d8',hk_english:'#c8b8e8',exercise:'#80c8a0',training:'#e0c070',duty:'#d0d070',travel:'#70c8b8',birthday:'#d09090'},gc:{'研究生论文初稿':'#70b0d0','港博申请':'#a898c8','专项活动':'#e0c070','运动健身':'#80c8a0','自定义':'#6a9fc8'}},{i:'purple',n:'紫',bg:'#f6f0fa',ca:'#fff',bd:'#dccce8',ac:'#a878c8',tx:'#4a3a5a',t2:'#8a7a9a',hTx:'#4a3a5a',hTx2:'#7a6a8a',tBg:'#f0e8f8',tBd:'#d4c0e4',hP1:'#d0b8e0',hP2:'#a878c8',h1:'#c0a8d8',h2:'#d4c0e4',pg:{thesis:'#80b0d0',hk_phd:'#b898d8',exercise:'#88c8a0'},tc:{thesis_outline:'#80b0d0',thesis_review:'#90c0dc',thesis_write:'#a0d0e8','thesis_final':'#80b0d0',hk_advisor:'#b898d8',hk_ielts_plan:'#c8a8e8',hk_agent:'#c8a8e8',hk_english:'#d8b8f0',exercise:'#88c8a0',training:'#dcc878',duty:'#d0d078',travel:'#78c8b8',birthday:'#d49898'},gc:{'研究生论文初稿':'#80b0d0','港博申请':'#b898d8','专项活动':'#dcc878','运动健身':'#88c8a0','自定义':'#a878c8'}},{i:'dark',n:'暗',bg:'#1a1a2e',ca:'#16213e',bd:'#0f3460',ac:'#e94560',tx:'#eaeaea',t2:'#a0a0b0',hTx:'#e0e0e0',hTx2:'#a0b0c0',tBg:'#1a2a4e',tBd:'#4a6080',hP1:'#4a3a5a',hP2:'#e94560',h1:'#0f3460',h2:'#16213e',pg:{thesis:'#5a8aaa',hk_phd:'#9a7aba',exercise:'#6aaa80'},tc:{thesis_outline:'#5a8aaa',thesis_review:'#6a9aba',thesis_write:'#7aaaca','thesis_final':'#5a8aaa',hk_advisor:'#9a7aba',hk_ielts_plan:'#aa8aca',hk_agent:'#aa8aca',hk_english:'#ba9ada',exercise:'#6aaa80',training:'#b89050',duty:'#b0a850',travel:'#5aa898',birthday:'#b87070'},gc:{'研究生论文初稿':'#5a8aaa','港博申请':'#9a7aba','专项活动':'#b89050','运动健身':'#6aaa80','自定义':'#e94560'}}];
+var FONTS=[{n:'默认',v:'-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,sans-serif'},{n:'楷体',v:'KaiTi,STKaiti,serif'},{n:'宋体',v:'SimSun,STSong,serif'},{n:'微软雅黑',v:'Microsoft YaHei,sans-serif'}];
+var DECOS=['🌸','🌻','⭐','🌈','🎀','💫','🌺','🎈','🦋','🍀','🐱','🐰','🧸','✨','🎠','🌷'];
+function toggleSettings(){var p=document.getElementById('settingsPanel');p.style.display=p.style.display==='none'?'block':'none';if(p.style.display==='block'){renderThemes();renderFonts()}}
+function renderThemes(){var r=document.getElementById('themeRow'),cur=localStorage.getItem('th')||'pink';r.innerHTML=THEMES.map(function(t){return'<span class="theme-sw'+(cur===t.i?' active':'')+'" style="background:linear-gradient(135deg,'+t.h1+','+t.h2+')" onclick="applyTheme(\''+t.i+'\')" title="'+t.n+'主题"></span>'}).join('')}
+function applyTheme(id){var t=THEMES.find(function(x){return x.i===id});if(!t)return;localStorage.setItem('th',id);document.documentElement.style.setProperty('--bg',t.bg);document.documentElement.style.setProperty('--card',t.ca);document.documentElement.style.setProperty('--border',t.bd);document.documentElement.style.setProperty('--accent',t.ac);document.documentElement.style.setProperty('--text',t.tx);document.documentElement.style.setProperty('--text2',t.t2);document.documentElement.style.setProperty('--hTx',t.hTx||'#5a3a40');document.documentElement.style.setProperty('--hTx2',t.hTx2||'#8a6068');document.documentElement.style.setProperty('--tBg',t.tBg||'#fef0f2');document.documentElement.style.setProperty('--tBd',t.tBd||'#f8d0d8');document.documentElement.style.setProperty('--hP1',t.hP1||'#f4c8d0');document.documentElement.style.setProperty('--hP2',t.hP2||'#f4a0b0');var hd=document.querySelector('.header');if(hd)hd.style.background='linear-gradient(135deg,'+t.h1+','+t.h2+')';var all={};Object.keys(t.pg).forEach(function(k){all[k]=t.pg[k]});Object.keys(t.tc).forEach(function(k){all[k]=t.tc[k]});Object.keys(t.gc).forEach(function(k){all[k]=t.gc[k]});SK(CLK,all);Object.keys(t.gc).forEach(function(k){GCOL[k]=t.gc[k]});Object.keys(t.pg).forEach(function(k){var pg=GR.find(function(g){return g.id===k});if(pg)pg.color=t.pg[k]});renderThemes();RA()}
+function renderFonts(){var r=document.getElementById('fontRow'),cur=localStorage.getItem('fn')||'';r.innerHTML=FONTS.map(function(f,i){return'<span class="font-btn2'+(cur===f.v||(!cur&&i===0)?' active':'')+'" onclick="applyFont(\''+f.v+'\',this)">'+f.n+'</span>'}).join('')}
+function applyFont(v,btn){localStorage.setItem('fn',v);document.body.style.fontFamily=v;document.querySelectorAll('.font-btn2').forEach(function(b){b.classList.toggle('active',b===btn)})}
+function addDeco(){var e=DECOS[Math.floor(Math.random()*DECOS.length)];var d=loadDecos();d.push({id:'dc_'+Date.now(),e:e,t:60+Math.random()*180,l:40+Math.random()*280});saveDecos(d);renderDecos()}
+function loadDecos(){try{return JSON.parse(localStorage.getItem('dcs'))||[]}catch(e){return[]}}function saveDecos(d){try{localStorage.setItem('dcs',JSON.stringify(d))}catch(e){}}
+function renderDecos(){document.querySelectorAll('.deco-card').forEach(function(e){e.remove()});loadDecos().forEach(function(c){var el=document.createElement('div');el.className='deco-card';el.id=c.id;el.style.top=c.t+'px';el.style.left=c.l+'px';el.innerHTML='<button class="delD" onclick="delDeco(\''+c.id+'\')">x</button>'+c.e;document.body.appendChild(el);dragDeco(el,c.id)})}
+function delDeco(id){var d=loadDecos().filter(function(x){return x.id!==id});saveDecos(d);var el=document.getElementById(id);if(el)el.remove()}
+function dragDeco(el,id){var dn=false,ox=0,oy=0;el.addEventListener('mousedown',function(e){if(e.target.closest('.delD'))return;dn=true;ox=e.clientX-parseFloat(el.style.left);oy=e.clientY-parseFloat(el.style.top);el.style.cursor='grabbing'});document.addEventListener('mousemove',function(e){if(!dn)return;el.style.left=(e.clientX-ox)+'px';el.style.top=(e.clientY-oy)+'px'});document.addEventListener('mouseup',function(){if(!dn)return;dn=false;el.style.cursor='grab';var d=loadDecos();d.forEach(function(c){if(c.id===id){c.t=parseFloat(el.style.top);c.l=parseFloat(el.style.left)}});saveDecos(d)})}
+(function(){var t=localStorage.getItem('th');if(t)applyTheme(t);var f=localStorage.getItem('fn');if(f)document.body.style.fontFamily=f;renderDecos()})();
+
+</script>
+<button id="settingsBtn" onclick="toggleSettings()">⚙</button><button id="addDecoBtn" onclick="addDeco()">✨</button>
+<div id="settingsPanel"><h4>色彩主题</h4><div id="themeRow"></div><h4>字体</h4><div id="fontRow"></div><hr style="border:none;border-top:1px solid var(––border);margin:8px 0"><h4>云端同步</h4><div class="sync-hint">部署服务器后在此配置同步地址</div><input type="text" id="syncUrlInput" placeholder="https://你的服务器地址"><button id="syncBtn" onclick="connectSync()">连接</button><div style="font-size:10px;color:var(--text2);margin-top:4px" id="syncStatusSmall">未连接</div></div></body></html>
