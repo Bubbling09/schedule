@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const PORT = 18930;
+const PORT = process.env.PORT || 18930;
 const DATA_FILE = path.join(__dirname, 'data.json');
 const HTML_FILE = path.join(__dirname, '暑假日程规划.html');
 
